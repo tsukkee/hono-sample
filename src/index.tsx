@@ -49,7 +49,7 @@ app.get("/todos", (c) =>
           <h2>一覧</h2>
           <ul>
             {todos.map((t) => (
-              <li>
+              <li style="display: flex; gap: 12px;">
                 {t.text}{" "}
                 <form action={`/todos/delete/${t.id}`} method="POST">
                   <button>x</button>
