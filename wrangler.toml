@@ -1,3 +1,7 @@
 name="hono-minimal"
 main="src/index.tsx"
 compatibility_date = "2022-07-18"
+
+kv_namespaces = [
+    { binding = "TODOS", id = "2420a7f0b2e846ce8bcc81ed535cc9bc", preview_id = "ad9575c8d37d44998cbd84147785025e" },
+]

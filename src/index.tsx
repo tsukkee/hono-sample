@@ -2,6 +2,10 @@ import { Hono } from "hono";
 import { html } from "hono/html";
 import { jsx } from "hono/jsx";
 
+interface Env {
+  TODOS: KVNamespace;
+}
+
 const Layout = (props: { children?: string }) => {
   return (
     <html>
@@ -14,14 +18,14 @@ const Layout = (props: { children?: string }) => {
   );
 };
 
-const app = new Hono();
+const PREFIX = "todo:v1:";
+
+const app = new Hono<{ Bindings: Env }>();
 
 type Todo = {
   id: string;
   text: string;
 };
-
-const todos: Todo[] = [];
 
 app.get("/", (c) =>
   c.html(
@@ -36,8 +40,17 @@ app.get("/", (c) =>
   )
 );
 
-app.get("/todos", (c) =>
-  c.html(
+app.get("/todos", async (c) => {
+  const list = await c.env.TODOS.list<Todo>({ prefix: PREFIX });
+  const todos: Todo[] = [];
+  for (const key of list.keys) {
+    const t = await c.env.TODOS.get<Todo>(key.name, "json");
+    if (t) {
+      todos.push(t);
+    }
+  }
+
+  return c.html(
     html`<!DOCTYPE html>${(
         <Layout>
           <h1>ToDo</h1>
@@ -59,25 +72,23 @@ app.get("/todos", (c) =>
           </ul>
         </Layout>
       )}`
-  )
-);
+  );
+});
 
 app.post("/todos/new", async (c) => {
   const data = await c.req.parseBody();
   const newId = crypto.randomUUID();
-  todos.push({
+  const newTodo: Todo = {
     id: newId,
     text: data["todo"] as string,
-  });
+  };
+  await c.env.TODOS.put(`${PREFIX}${newId}`, JSON.stringify(newTodo));
   return c.redirect("/todos");
 });
 
 app.post("/todos/delete/:id", async (c) => {
-  const id = c.req.param("id");
-  const index = todos.findIndex((t) => t.id === id);
-  if (index !== -1) {
-    todos.splice(index, 1);
-  }
+  const { id } = c.req.param();
+  await c.env.TODOS.delete(`${PREFIX}${id}`);
   return c.redirect("/todos");
 });
 
