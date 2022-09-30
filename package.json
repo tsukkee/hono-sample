@@ -10,7 +10,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hono": "^2.1.2"
+    "hono": "^2.1.2",
+    "prettier": "^2.7.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.14.1",
